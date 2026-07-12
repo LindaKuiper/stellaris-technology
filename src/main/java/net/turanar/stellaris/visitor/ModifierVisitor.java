@@ -19,23 +19,38 @@ public class ModifierVisitor {
         ArrayList<Modifier> retval = new ArrayList<>();
 
         ctx.value().map().pair().forEach(p -> {
-            try {
-                Modifier m = new Modifier();
-                m.type = ModifierType.valueOf(p.key());
-                m.pair = p;
-                retval.add(m);
-            } catch (IllegalArgumentException e) {
-                System.err.println(e.getMessage());
+            ModifierType type = ModifierType.value(p.key());
+            if(type == ModifierType.DEFAULT) {
+                System.err.println("Unknown potential condition (skipped): " + p.key());
+                return;
             }
+            Modifier m = new Modifier();
+            m.type = type;
+            m.pair = p;
+            retval.add(m);
         });
         return retval;
+    }
+
+    // Factors may be script values like "value:tech_weight_likelihood" which cannot be evaluated here
+    private Float parseFactor(String value) {
+        if(value == null) return null;
+        try {
+            return Float.valueOf(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     public List<WeightModifier> visitPair(Technology tech, StellarisParser.PairContext ctx) {
         List<WeightModifier> retval = new ArrayList<WeightModifier>();
         ctx.value().map().pair().forEach(p -> {
             switch(p.key()) {
-                case "factor": tech.base_factor = Float.valueOf(gs(p)); break;
+                case "factor": {
+                    Float f = parseFactor(gs(p));
+                    if(f != null) tech.base_factor = f;
+                    break;
+                }
                 case "modifier":
                     WeightModifier m = visitModifier(p);
                     if(m.pair == null && m.factor != null) tech.base_factor = m.factor;
@@ -49,16 +64,21 @@ public class ModifierVisitor {
     public WeightModifier visitModifier(StellarisParser.PairContext ctx) {
         WeightModifier retval = new WeightModifier();
         ctx.value().map().pair().forEach(p -> {
-            try {
-                switch(p.key()) {
-                    case "factor": retval.factor = Float.valueOf(gs(p)); break;
-                    case "add": retval.add = Integer.valueOf(gs(p)); break;
-                    default:
-                        retval.type = ModifierType.valueOf(p.key());
-                        retval.pair = p;
+            switch(p.key()) {
+                case "factor": retval.factor = parseFactor(gs(p)); break;
+                case "add": {
+                    Float a = parseFactor(gs(p));
+                    if(a != null) retval.add = Math.round(a);
+                    break;
                 }
-            } catch (IllegalArgumentException e) {
-                System.err.println(e.getMessage());
+                default:
+                    ModifierType type = ModifierType.value(p.key());
+                    if(type == ModifierType.DEFAULT) {
+                        System.err.println("Unknown weight condition (skipped): " + p.key());
+                        break;
+                    }
+                    retval.type = type;
+                    retval.pair = p;
             }
         });
         return retval;

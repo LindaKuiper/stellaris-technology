@@ -173,6 +173,9 @@ public enum ModifierType {
         }
     }),
 
+    // Generic fallback for any condition that matches a scripted trigger by name
+    scripted_trigger(DefaultParser.SCRIPTED),
+
     DEFAULT((p) -> {
         String retval = p.getText();
         System.out.println(retval);
@@ -264,6 +267,7 @@ public enum ModifierType {
         try {
             return valueOf(name);
         } catch (IllegalArgumentException e) {
+            if(GLOBAL_TRIGGERS != null && GLOBAL_TRIGGERS.containsKey(name)) return scripted_trigger;
             return DEFAULT;
         }
     }

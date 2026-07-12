@@ -22,15 +22,21 @@ public class StellarisYamlReader extends Reader {
                     int end = line.lastIndexOf('"');
                     if(!(end == start+1)) {
                         String fixed = line.substring(start + 1,end);
+                        fixed = fixed.replaceAll("\\\\\"", "\"");
                         fixed = fixed.replaceAll("\"", "\\\\\"");
                         line = line.substring(0, start + 1) + fixed + line.substring(end);
                     }
                 }
 
                 line = line.replace("\uFEFF", "");
-                line = line.replaceAll("£\\w+  |§[A-Z!]","");
+                line = line.replace('\t', ' ');
+                line = line.replaceAll("£\\w+£?\\s?|§[A-Za-z0-9!]","");
                 line = line.replaceAll("(?<=\\w):\\d+ ?(?=\")", ": ");
                 line = line.replaceAll("^[ \\t]+"," ");
+                // Paradox files sometimes put keys at column 0 - re-indent them under the language header
+                if(line.matches("^[^\\s#].*") && !line.matches("^l_[a-z_]+:.*")) {
+                    line = " " + line;
+                }
                 retval.append(line).append(System.lineSeparator());
             }
             this.reader = new StringReader(retval.toString());

@@ -41,10 +41,16 @@ public class Config {
         parse("files/localisation/english", "yml", path -> {
             Yaml yaml = new Yaml();
             Iterable<Object> data = yaml.loadAll(new StellarisYamlReader(path));
-            Map<String,Map<Object,Object>> map = (Map<String,Map<Object,Object>>)data.iterator().next();
-            map.get("l_english").forEach((k, v) -> {
-                retval.put(k.toString().toLowerCase(), v.toString());
-            });
+            for(Object doc : data) {
+                if(!(doc instanceof Map)) continue;
+                Map<String,Map<Object,Object>> map = (Map<String,Map<Object,Object>>)doc;
+                Map<Object,Object> lang = map.get("l_english");
+                if(lang == null) continue;
+                lang.forEach((k, v) -> {
+                    if(k == null || v == null) return;
+                    retval.put(k.toString().toLowerCase(), v.toString());
+                });
+            }
         });
 
         return retval;

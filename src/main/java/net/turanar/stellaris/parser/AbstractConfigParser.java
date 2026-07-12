@@ -27,7 +27,7 @@ public abstract class AbstractConfigParser {
             Arrays.stream(techs).forEach(t -> root.children.addAll(t.children));
             data = gson.toJson(root);
         }
-        fos.write(data.getBytes());
+        fos.write(data.getBytes(java.nio.charset.StandardCharsets.UTF_8));
         fos.close();
     }
 

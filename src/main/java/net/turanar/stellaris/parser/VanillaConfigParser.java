@@ -41,7 +41,7 @@ public class VanillaConfigParser extends AbstractConfigParser {
         Arrays.stream(GameObject.values()).forEach(type -> {
             try {
                 parse(folder + "/" + type.folder, "txt", path -> {
-                    if (path.getFileName().toString().startsWith("README")) return;
+                    if (path.getFileName().toString().contains("README")) return;
                     if (!path.getFileName().toString().endsWith(type.filter)) return;
                     unlockVisitor.visitFile(type, factory.getParser(path).file());
                 });
@@ -78,7 +78,7 @@ public class VanillaConfigParser extends AbstractConfigParser {
         });
 
         FileOutputStream fos = new FileOutputStream("output/anomalies.json");
-        fos.write(gson.toJson(anomalies).getBytes());
+        fos.write(gson.toJson(anomalies).getBytes(java.nio.charset.StandardCharsets.UTF_8));
         fos.close();
     }
 

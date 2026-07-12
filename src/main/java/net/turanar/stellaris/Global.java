@@ -81,13 +81,15 @@ public class Global {
     public static String applyTemplate(String retval) {
         Pattern p = Pattern.compile("\\$([a-zA-z0-9_]+)\\$");
 
+        // Expand templates iteratively (recursion loops forever on self-referencing keys)
         int i = 0;
-        while(retval.contains("$") && i < 2) {
-            Matcher m2 = p.matcher(retval);
-            if(m2.find()) {
-                retval = m2.replaceFirst(i18n(m2.group(1)));
-                m2.reset();
-            }
+        Matcher m2 = p.matcher(retval);
+        while(m2.find() && i < 10) {
+            String key = m2.group(1);
+            String replacement = GLOBAL_STRINGS.get(key.toLowerCase());
+            if(replacement == null) replacement = key;
+            retval = retval.substring(0, m2.start()) + replacement + retval.substring(m2.end());
+            m2 = p.matcher(retval);
             i++;
         }
         return retval;

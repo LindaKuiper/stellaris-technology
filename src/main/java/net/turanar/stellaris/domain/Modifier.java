@@ -16,6 +16,10 @@ public class Modifier {
 
     @Override
     public String toString() {
-        return type != null && pair != null ? type.parse(pair) : (pair != null ? pair.getText() : "");
+        try {
+            return type != null && pair != null ? type.parse(pair) : (pair != null ? pair.getText() : "");
+        } catch (RuntimeException e) {
+            return pair != null ? pair.getText() : "";
+        }
     }
 }
