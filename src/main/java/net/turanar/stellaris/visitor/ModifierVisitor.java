@@ -20,6 +20,7 @@ public class ModifierVisitor {
 
         ctx.value().map().pair().forEach(p -> {
             if(p.key().equals("inline_script")) return;
+            if(p.key().equals("exists")) return; // scope checks carry no player-facing meaning
             Modifier m = new Modifier();
             m.type = ModifierType.value(p.key());
             m.pair = p;

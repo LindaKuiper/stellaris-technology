@@ -169,6 +169,10 @@ public class StellarisParser extends Parser {
 		public PairContext pair(int i) {
 			return getRuleContext(PairContext.class,i);
 		}
+		public List<TerminalNode> BAREWORD() { return getTokens(StellarisParser.BAREWORD); }
+		public TerminalNode BAREWORD(int i) {
+			return getToken(StellarisParser.BAREWORD, i);
+		}
 		public MapContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -197,21 +201,33 @@ public class StellarisParser extends Parser {
 			{
 			setState(19);
 			match(T__0);
-			setState(23);
+			setState(24);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==BAREWORD) {
 				{
-				{
-				setState(20);
-				pair();
+				setState(22);
+				_errHandler.sync(this);
+				switch ( getInterpreter().adaptivePredict(_input,2,_ctx) ) {
+				case 1:
+					{
+					setState(20);
+					pair();
+					}
+					break;
+				case 2:
+					{
+					setState(21);
+					match(BAREWORD);
+					}
+					break;
 				}
 				}
-				setState(25);
+				setState(26);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(26);
+			setState(27);
 			match(T__1);
 			}
 		}
@@ -258,11 +274,11 @@ public class StellarisParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(28);
-			match(BAREWORD);
 			setState(29);
-			match(SPECIFIER);
+			match(BAREWORD);
 			setState(30);
+			match(SPECIFIER);
+			setState(31);
 			value();
 			}
 		}
@@ -306,11 +322,11 @@ public class StellarisParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(32);
-			match(VARIABLE);
 			setState(33);
-			match(SPECIFIER);
+			match(VARIABLE);
 			setState(34);
+			match(SPECIFIER);
+			setState(35);
 			match(NUMBER);
 			}
 		}
@@ -358,23 +374,23 @@ public class StellarisParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(36);
+			setState(37);
 			match(T__0);
-			setState(38); 
+			setState(39); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(37);
+				setState(38);
 				value();
 				}
 				}
-				setState(40); 
+				setState(41); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__0) | (1L << BOOLEAN) | (1L << VARIABLE) | (1L << NUMBER) | (1L << DATE) | (1L << BAREWORD) | (1L << STRING))) != 0) );
-			setState(42);
+			setState(43);
 			match(T__1);
 			}
 		}
@@ -396,11 +412,11 @@ public class StellarisParser extends Parser {
 		public TerminalNode STRING() { return getToken(StellarisParser.STRING, 0); }
 		public TerminalNode VARIABLE() { return getToken(StellarisParser.VARIABLE, 0); }
 		public TerminalNode BAREWORD() { return getToken(StellarisParser.BAREWORD, 0); }
-		public MapContext map() {
-			return getRuleContext(MapContext.class,0);
-		}
 		public ArrayContext array() {
 			return getRuleContext(ArrayContext.class,0);
+		}
+		public MapContext map() {
+			return getRuleContext(MapContext.class,0);
 		}
 		public ValueContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -425,63 +441,63 @@ public class StellarisParser extends Parser {
 		ValueContext _localctx = new ValueContext(_ctx, getState());
 		enterRule(_localctx, 10, RULE_value);
 		try {
-			setState(52);
+			setState(53);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,4,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,5,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(44);
+				setState(45);
 				match(NUMBER);
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(45);
+				setState(46);
 				match(BOOLEAN);
 				}
 				break;
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(46);
+				setState(47);
 				match(DATE);
 				}
 				break;
 			case 4:
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(47);
+				setState(48);
 				match(STRING);
 				}
 				break;
 			case 5:
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(48);
+				setState(49);
 				match(VARIABLE);
 				}
 				break;
 			case 6:
 				enterOuterAlt(_localctx, 6);
 				{
-				setState(49);
+				setState(50);
 				match(BAREWORD);
 				}
 				break;
 			case 7:
 				enterOuterAlt(_localctx, 7);
 				{
-				setState(50);
-				map();
+				setState(51);
+				array();
 				}
 				break;
 			case 8:
 				enterOuterAlt(_localctx, 8);
 				{
-				setState(51);
-				array();
+				setState(52);
+				map();
 				}
 				break;
 			}
@@ -498,22 +514,22 @@ public class StellarisParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\r9\4\2\t\2\4\3\t"+
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\r:\4\2\t\2\4\3\t"+
 		"\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\3\2\3\2\7\2\21\n\2\f\2\16\2\24\13\2"+
-		"\3\3\3\3\7\3\30\n\3\f\3\16\3\33\13\3\3\3\3\3\3\4\3\4\3\4\3\4\3\5\3\5\3"+
-		"\5\3\5\3\6\3\6\6\6)\n\6\r\6\16\6*\3\6\3\6\3\7\3\7\3\7\3\7\3\7\3\7\3\7"+
-		"\3\7\5\7\67\n\7\3\7\2\2\b\2\4\6\b\n\f\2\2\2=\2\22\3\2\2\2\4\25\3\2\2\2"+
-		"\6\36\3\2\2\2\b\"\3\2\2\2\n&\3\2\2\2\f\66\3\2\2\2\16\21\5\6\4\2\17\21"+
+		"\3\3\3\3\3\3\7\3\31\n\3\f\3\16\3\34\13\3\3\3\3\3\3\4\3\4\3\4\3\4\3\5\3"+
+		"\5\3\5\3\5\3\6\3\6\6\6*\n\6\r\6\16\6+\3\6\3\6\3\7\3\7\3\7\3\7\3\7\3\7"+
+		"\3\7\3\7\5\78\n\7\3\7\2\2\b\2\4\6\b\n\f\2\2\2?\2\22\3\2\2\2\4\25\3\2\2"+
+		"\2\6\37\3\2\2\2\b#\3\2\2\2\n\'\3\2\2\2\f\67\3\2\2\2\16\21\5\6\4\2\17\21"+
 		"\5\b\5\2\20\16\3\2\2\2\20\17\3\2\2\2\21\24\3\2\2\2\22\20\3\2\2\2\22\23"+
-		"\3\2\2\2\23\3\3\2\2\2\24\22\3\2\2\2\25\31\7\3\2\2\26\30\5\6\4\2\27\26"+
-		"\3\2\2\2\30\33\3\2\2\2\31\27\3\2\2\2\31\32\3\2\2\2\32\34\3\2\2\2\33\31"+
-		"\3\2\2\2\34\35\7\4\2\2\35\5\3\2\2\2\36\37\7\n\2\2\37 \7\7\2\2 !\5\f\7"+
-		"\2!\7\3\2\2\2\"#\7\6\2\2#$\7\7\2\2$%\7\b\2\2%\t\3\2\2\2&(\7\3\2\2\')\5"+
-		"\f\7\2(\'\3\2\2\2)*\3\2\2\2*(\3\2\2\2*+\3\2\2\2+,\3\2\2\2,-\7\4\2\2-\13"+
-		"\3\2\2\2.\67\7\b\2\2/\67\7\5\2\2\60\67\7\t\2\2\61\67\7\13\2\2\62\67\7"+
-		"\6\2\2\63\67\7\n\2\2\64\67\5\4\3\2\65\67\5\n\6\2\66.\3\2\2\2\66/\3\2\2"+
-		"\2\66\60\3\2\2\2\66\61\3\2\2\2\66\62\3\2\2\2\66\63\3\2\2\2\66\64\3\2\2"+
-		"\2\66\65\3\2\2\2\67\r\3\2\2\2\7\20\22\31*\66";
+		"\3\2\2\2\23\3\3\2\2\2\24\22\3\2\2\2\25\32\7\3\2\2\26\31\5\6\4\2\27\31"+
+		"\7\n\2\2\30\26\3\2\2\2\30\27\3\2\2\2\31\34\3\2\2\2\32\30\3\2\2\2\32\33"+
+		"\3\2\2\2\33\35\3\2\2\2\34\32\3\2\2\2\35\36\7\4\2\2\36\5\3\2\2\2\37 \7"+
+		"\n\2\2 !\7\7\2\2!\"\5\f\7\2\"\7\3\2\2\2#$\7\6\2\2$%\7\7\2\2%&\7\b\2\2"+
+		"&\t\3\2\2\2\')\7\3\2\2(*\5\f\7\2)(\3\2\2\2*+\3\2\2\2+)\3\2\2\2+,\3\2\2"+
+		"\2,-\3\2\2\2-.\7\4\2\2.\13\3\2\2\2/8\7\b\2\2\608\7\5\2\2\618\7\t\2\2\62"+
+		"8\7\13\2\2\638\7\6\2\2\648\7\n\2\2\658\5\n\6\2\668\5\4\3\2\67/\3\2\2\2"+
+		"\67\60\3\2\2\2\67\61\3\2\2\2\67\62\3\2\2\2\67\63\3\2\2\2\67\64\3\2\2\2"+
+		"\67\65\3\2\2\2\67\66\3\2\2\28\r\3\2\2\2\b\20\22\30\32+\67";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

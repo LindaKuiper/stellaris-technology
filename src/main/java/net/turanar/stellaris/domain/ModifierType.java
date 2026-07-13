@@ -173,6 +173,9 @@ public enum ModifierType {
         }
     }),
 
+    // Scope-existence checks (exists = this/from/...) carry no player-facing meaning
+    exists((p) -> ""),
+
     // 4.x conditions
     has_origin("Has %s Origin"),
     founder_species("Founder Species :", DefaultParser.CONDITIONAL),
@@ -233,8 +236,8 @@ public enum ModifierType {
         for(PairContext prop : p.value().map().pair()) {
             if(prop.key().equals("limit")) {
                 for(PairContext l : prop.value().map().pair()) {
-                    Modifier m = visitCondition(l);
-                    limits += "\n" + LS + m.toString();
+                    String s = visitCondition(l).toString();
+                    if(!s.isEmpty()) limits += "\n" + LS + s;
                 }
             } else if(prop.key().equals("count")) {
                 count = op(prop) + " " + gs(prop);
@@ -248,7 +251,10 @@ public enum ModifierType {
         List<String> conditions = new ArrayList<>();
         for(PairContext prop : p.value().map().pair()) {
             if(prop.key().equals("amount")) amount = op(prop) + " " + gs(prop);
-            else conditions.add(visitCondition(prop).toString());
+            else {
+                String s = visitCondition(prop).toString();
+                if(!s.isEmpty()) conditions.add(s);
+            }
         }
         String retval = "A number " + amount + " of the following must be true";
         for(String condition : conditions) {
@@ -262,7 +268,8 @@ public enum ModifierType {
         for(PairContext prop : p.value().map().pair()) {
             if(prop.key().equals("limit")) {
                 for(PairContext l : prop.value().map().pair()) {
-                    conditions.add(visitCondition(l).toString());
+                    String s = visitCondition(l).toString();
+                    if(!s.isEmpty()) conditions.add(s);
                 }
             }
         }
@@ -284,7 +291,8 @@ public enum ModifierType {
         for(PairContext prop : p.value().map().pair()) {
             if(prop.key().equals("limit")) {
                 for(PairContext l : prop.value().map().pair()) {
-                    conditions.add(visitCondition(l).toString());
+                    String s = visitCondition(l).toString();
+                    if(!s.isEmpty()) conditions.add(s);
                 }
             }
         }
@@ -323,7 +331,8 @@ public enum ModifierType {
 
             for(PairContext prop : p.value().map().pair()) {
                 Modifier m = visitCondition(prop);
-                conditions.add(m.toString());
+                String s = m.toString();
+                if(!s.isEmpty()) conditions.add(s);
             }
 
             String retval = format;
@@ -355,10 +364,12 @@ public enum ModifierType {
 
             for(PairContext prop : q.value().map().pair()) {
                 Modifier m = visitCondition(prop);
-                conditions.add(m.toString());
+                String s = m.toString();
+                if(!s.isEmpty()) conditions.add(s);
             }
             String retval = format;
 
+            if(conditions.isEmpty()) return "";
             if(conditions.size() < 2) {
                 retval = conditions.get(0);
                 return retval;

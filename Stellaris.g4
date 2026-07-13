@@ -5,7 +5,7 @@ file
    ;
 
 map
-   : '{' (pair)* '}'
+   : '{' (pair | BAREWORD)* '}'
    ;
 
 pair
@@ -27,8 +27,8 @@ value
    | STRING
    | VARIABLE
    | BAREWORD
-   | map
    | array
+   | map
    ;
 
 BOOLEAN
