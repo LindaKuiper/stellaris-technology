@@ -1,5 +1,7 @@
 package net.turanar.stellaris.domain;
 
+import com.google.gson.JsonArray;
+
 import java.util.*;
 
 public class Technology implements Comparable<Technology> {
@@ -24,6 +26,8 @@ public class Technology implements Comparable<Technology> {
     public List<HashMap<String,String>> prerequisites_names = new ArrayList<>();
     public List<WeightModifier> weight_modifiers = new ArrayList<>();
     public List<Modifier> potential = new ArrayList<>();
+    public JsonArray weight_rules = new JsonArray();
+    public JsonArray potential_rules = new JsonArray();
     public SortedSet<Technology> children = new TreeSet<>();
 
     public boolean is_event = false;

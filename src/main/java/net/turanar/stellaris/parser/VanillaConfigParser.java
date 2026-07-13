@@ -86,6 +86,7 @@ public class VanillaConfigParser extends AbstractConfigParser {
         parseTechnolgies("files");
         parseGamesObjets("files");
         prepare(technologies);
+        writeEmpireOptions(technologies);
         anomalies();
 
         Technology rootP = new Technology(gather(Area.physics));

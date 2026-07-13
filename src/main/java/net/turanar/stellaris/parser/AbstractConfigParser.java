@@ -1,9 +1,14 @@
 package net.turanar.stellaris.parser;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.turanar.stellaris.domain.Modifier;
 import net.turanar.stellaris.domain.ModifierType;
 import net.turanar.stellaris.domain.Technology;
+import net.turanar.stellaris.visitor.RuleBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.FileOutputStream;
@@ -11,6 +16,8 @@ import java.io.IOException;
 import java.util.*;
 
 import static net.turanar.stellaris.Global.gs;
+import static net.turanar.stellaris.Global.i18n;
+import static net.turanar.stellaris.Global.traitName;
 
 public abstract class AbstractConfigParser {
     @Autowired
@@ -146,6 +153,9 @@ public abstract class AbstractConfigParser {
                     }
                 }
             }
+
+            tech.weight_rules = RuleBuilder.buildWeightRules(tech.weight_modifiers);
+            tech.potential_rules = RuleBuilder.buildPotentialRules(tech.potential);
         });
 
         technologies.values().stream().filter(tech -> tech.prerequisites.size()> 0).forEach(tech -> {
@@ -155,6 +165,87 @@ public abstract class AbstractConfigParser {
             if(parent.is_event) parent.children.add(tech);
             else attach(parent, tech, parent.tier == null ? 0 : parent.tier);
         });
+    }
+
+    // Maps a rule "fact" name to its empire_options category. Facts absent here
+    // (has_technology, is_gestalt, always_false, ...) are not cataloged.
+    private static final Map<String,String> FACT_CATEGORY = new LinkedHashMap<>();
+    static {
+        FACT_CATEGORY.put("has_ethic", "ethics");
+        FACT_CATEGORY.put("has_authority", "authorities");
+        FACT_CATEGORY.put("has_civic", "civics");
+        FACT_CATEGORY.put("has_origin", "origins");
+        FACT_CATEGORY.put("has_tradition", "traditions");
+        FACT_CATEGORY.put("has_trait_in_council", "council_traits");
+        FACT_CATEGORY.put("has_ascension_perk", "ascension_perks");
+        FACT_CATEGORY.put("host_has_dlc", "dlcs");
+    }
+
+    public void writeEmpireOptions(Map<String,Technology> technologies) throws IOException {
+        Map<String,Set<String>> collected = new LinkedHashMap<>();
+        for(String cat : FACT_CATEGORY.values()) collected.put(cat, new HashSet<>());
+
+        for(Technology tech : technologies.values()) {
+            for(JsonElement rule : tech.weight_rules) {
+                if(rule.isJsonObject() && rule.getAsJsonObject().has("if")) {
+                    collect(rule.getAsJsonObject().get("if"), collected);
+                }
+            }
+            for(JsonElement rule : tech.potential_rules) {
+                collect(rule, collected);
+            }
+        }
+
+        JsonObject root = new JsonObject();
+        for(Map.Entry<String,String> e : FACT_CATEGORY.entrySet()) {
+            String cat = e.getValue();
+            List<JsonObject> entries = new ArrayList<>();
+            for(String key : collected.get(cat)) {
+                JsonObject o = new JsonObject();
+                o.addProperty("key", key);
+                o.addProperty("name", displayName(cat, key));
+                entries.add(o);
+            }
+            entries.sort(Comparator.comparing(o -> o.get("name").getAsString(), String.CASE_INSENSITIVE_ORDER));
+            JsonArray arr = new JsonArray();
+            entries.forEach(arr::add);
+            root.add(cat, arr);
+        }
+
+        Gson pretty = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+        FileOutputStream fos = new FileOutputStream("output/empire_options.json");
+        fos.write(pretty.toJson(root).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        fos.close();
+    }
+
+    private static String displayName(String category, String key) {
+        String name;
+        if(category.equals("council_traits")) name = traitName(key);
+        else name = i18n(key);
+        if(name.equals(key)) {
+            String suffixed = i18n(key + "_name");
+            if(!suffixed.equals(key + "_name")) name = suffixed;
+        }
+        // Data-function names ([GetChosenName]) cannot be resolved statically - prettify the key
+        if(name.contains("[")) {
+            name = org.apache.commons.lang3.StringUtils.capitalize(
+                    name.equals(key) ? key : key.replaceAll("^(leader_trait_|trait_)", "").replace('_', ' '));
+        }
+        return name;
+    }
+
+    private static void collect(JsonElement el, Map<String,Set<String>> collected) {
+        if(el == null || !el.isJsonObject()) return;
+        JsonObject o = el.getAsJsonObject();
+        if(o.has("fact") && o.has("value")) {
+            String cat = FACT_CATEGORY.get(o.get("fact").getAsString());
+            if(cat != null) collected.get(cat).add(o.get("value").getAsString());
+        }
+        for(String op : new String[]{"any","all","none"}) {
+            if(o.has(op) && o.get(op).isJsonArray()) {
+                for(JsonElement child : o.get(op).getAsJsonArray()) collect(child, collected);
+            }
+        }
     }
 
     public abstract void read(String folder) throws IOException;
