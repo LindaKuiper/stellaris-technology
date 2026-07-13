@@ -78,6 +78,23 @@ public class Global {
         return GLOBAL_VARIABLES.get(key);
     }
 
+    private static final String[] ROMAN = {"","I","II","III","IV","V","VI","VII","VIII","IX"};
+
+    // Tiered traits (leader_trait_maniacal_3) often have no own localisation key:
+    // the game reuses the base trait name with a Roman numeral suffix
+    public static String traitName(String key) {
+        String name = i18n(key);
+        if(!name.equals(key)) return name;
+        Matcher m = Pattern.compile("^(.*)_([1-9])$").matcher(key);
+        if(m.matches()) {
+            String base = i18n(m.group(1));
+            if(!base.equals(m.group(1))) {
+                return base + " " + ROMAN[Integer.parseInt(m.group(2))];
+            }
+        }
+        return name;
+    }
+
     public static String applyTemplate(String retval) {
         Pattern p = Pattern.compile("\\$([a-zA-z0-9_]+)\\$");
 

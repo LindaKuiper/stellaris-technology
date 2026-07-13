@@ -31,6 +31,27 @@ public abstract class AbstractConfigParser {
         fos.close();
     }
 
+    /**
+     * Attach child under parent, inserting invisible Treant pseudo nodes when the
+     * child's tier is more than one level deeper - so every tier gets its own column.
+     */
+    public static void attach(Technology parent, Technology child, int parentTier) {
+        int childTier = child.tier == null ? 0 : child.tier;
+        Technology anchor = parent;
+        for(int i = parentTier + 1; i < childTier; i++) {
+            Technology filler = new Technology();
+            filler.pseudo = true;
+            filler.key = "pseudo_" + child.key + "_tier" + i;
+            filler.area = child.area;
+            filler.category = child.category;
+            filler.cost = child.cost;
+            filler.tier = i;
+            anchor.children.add(filler);
+            anchor = filler;
+        }
+        anchor.children.add(child);
+    }
+
     public void prepare(Map<String,Technology> technologies) {
         technologies.values().forEach(tech -> {
             if(tech.tier == null) tech.tier = 0;
@@ -129,8 +150,10 @@ public abstract class AbstractConfigParser {
 
         technologies.values().stream().filter(tech -> tech.prerequisites.size()> 0).forEach(tech -> {
             if(tech.is_event) return;
-            String parent = tech.prerequisites.get(0);
-            technologies.get(parent).children.add(tech);
+            Technology parent = technologies.get(tech.prerequisites.get(0));
+            // Event techs are shown as a flat list - never insert pseudo nodes under them
+            if(parent.is_event) parent.children.add(tech);
+            else attach(parent, tech, parent.tier == null ? 0 : parent.tier);
         });
     }
 

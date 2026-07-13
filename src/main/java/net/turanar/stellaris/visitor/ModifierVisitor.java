@@ -19,13 +19,9 @@ public class ModifierVisitor {
         ArrayList<Modifier> retval = new ArrayList<>();
 
         ctx.value().map().pair().forEach(p -> {
-            ModifierType type = ModifierType.value(p.key());
-            if(type == ModifierType.DEFAULT) {
-                System.err.println("Unknown potential condition (skipped): " + p.key());
-                return;
-            }
+            if(p.key().equals("inline_script")) return;
             Modifier m = new Modifier();
-            m.type = type;
+            m.type = ModifierType.value(p.key());
             m.pair = p;
             retval.add(m);
         });
@@ -65,6 +61,7 @@ public class ModifierVisitor {
         WeightModifier retval = new WeightModifier();
         ctx.value().map().pair().forEach(p -> {
             switch(p.key()) {
+                case "inline_script": break;
                 case "factor": retval.factor = parseFactor(gs(p)); break;
                 case "add": {
                     Float a = parseFactor(gs(p));
@@ -72,12 +69,7 @@ public class ModifierVisitor {
                     break;
                 }
                 default:
-                    ModifierType type = ModifierType.value(p.key());
-                    if(type == ModifierType.DEFAULT) {
-                        System.err.println("Unknown weight condition (skipped): " + p.key());
-                        break;
-                    }
-                    retval.type = type;
+                    retval.type = ModifierType.value(p.key());
                     retval.pair = p;
             }
         });

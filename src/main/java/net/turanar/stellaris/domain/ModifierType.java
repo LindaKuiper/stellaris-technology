@@ -79,7 +79,7 @@ public enum ModifierType {
     AND("All must be true", DefaultParser.CONDITIONAL),
 
     has_trait((p) -> {
-        String expertise = i18n(gs(p));
+        String expertise = traitName(gs(p));
         if(expertise.contains("Expertise: ")) expertise = expertise.replaceAll("Expertise: ","") + " Expert";
         return "Is " + expertise;
     }),
@@ -173,13 +173,141 @@ public enum ModifierType {
         }
     }),
 
+    // 4.x conditions
+    has_origin("Has %s Origin"),
+    founder_species("Founder Species :", DefaultParser.CONDITIONAL),
+    species("Species :", DefaultParser.CONDITIONAL),
+    owner_or_space_owner("Owner", DefaultParser.CONDITIONAL),
+    federation("Federation :", DefaultParser.CONDITIONAL),
+    any_owned_pop_group("Any Owned Pop", DefaultParser.CONDITIONAL),
+    any_owned_species("Any Owned Species", DefaultParser.CONDITIONAL),
+    any_owned_nonprimary_starbase("Any Owned Starbase", DefaultParser.CONDITIONAL),
+    any_country("Any Country", DefaultParser.CONDITIONAL),
+    any_owned_leader("Any Owned Leader", DefaultParser.CONDITIONAL),
+    is_nomadic("Is Nomadic|Is NOT Nomadic", DefaultParser.SIMPLE_BOOLEAN),
+    has_relic((p) -> {
+        String name = i18n(gs(p) + "_name");
+        if(name.endsWith("_name")) name = i18n(gs(p));
+        return "Has Relic: " + name;
+    }),
+    has_federation("Is in a Federation|Is NOT in a Federation", DefaultParser.SIMPLE_BOOLEAN),
+    is_galactic_community_member("Is a Galactic Community member|Is NOT a Galactic Community member", DefaultParser.SIMPLE_BOOLEAN),
+    mid_game_years_passed("Number of years since mid-game is %s %s", DefaultParser.SIMPLE_OPERATION),
+    num_ascension_perk_slots("Number of Ascension Perk slots is %s %s", DefaultParser.SIMPLE_OPERATION),
+    num_cosmic_storms_encountered("Number of cosmic storms encountered is %s %s", DefaultParser.SIMPLE_OPERATION),
+
+    has_trait_in_council((p) -> {
+        for(PairContext prop : p.value().map().pair()) {
+            if(prop.key().equals("TRAIT")) return "Has council member with trait: " + traitName(gs(prop));
+        }
+        return "Has council member with a specific trait";
+    }),
+
+    is_specialist_subject_type((p) -> {
+        for(PairContext prop : p.value().map().pair()) {
+            if(prop.key().equals("TYPE")) return "Is " + i18n(gs(prop)) + " specialist subject";
+        }
+        return "Is a specialist subject";
+    }),
+
+    num_buildings((p) -> {
+        String type = "", count = "";
+        for(PairContext prop : p.value().map().pair()) {
+            if(prop.key().equals("type")) type = i18n(gs(prop));
+            else if(prop.key().equals("value")) count = op(prop) + " " + gs(prop);
+        }
+        return "Number of " + type + " buildings is " + count;
+    }),
+
+    count_archaeological_site((p) -> {
+        String count = "";
+        for(PairContext prop : p.value().map().pair()) {
+            if(prop.key().equals("count")) count = op(prop) + " " + gs(prop);
+        }
+        return "Number of archaeological sites is " + count;
+    }),
+
+    count_owned_pop_amount((p) -> {
+        String limits = "";
+        String count = "";
+        for(PairContext prop : p.value().map().pair()) {
+            if(prop.key().equals("limit")) {
+                for(PairContext l : prop.value().map().pair()) {
+                    Modifier m = visitCondition(l);
+                    limits += "\n" + LS + m.toString();
+                }
+            } else if(prop.key().equals("count")) {
+                count = op(prop) + " " + gs(prop);
+            }
+        }
+        return "Has a number of pops " + count + limits;
+    }),
+
+    calc_true_if((p) -> {
+        String amount = "";
+        List<String> conditions = new ArrayList<>();
+        for(PairContext prop : p.value().map().pair()) {
+            if(prop.key().equals("amount")) amount = op(prop) + " " + gs(prop);
+            else conditions.add(visitCondition(prop).toString());
+        }
+        String retval = "A number " + amount + " of the following must be true";
+        for(String condition : conditions) {
+            retval = retval + "\n" + LS + condition;
+        }
+        return retval;
+    }),
+
+    IF_BLOCK((p) -> {
+        List<String> conditions = new ArrayList<>();
+        for(PairContext prop : p.value().map().pair()) {
+            if(prop.key().equals("limit")) {
+                for(PairContext l : prop.value().map().pair()) {
+                    conditions.add(visitCondition(l).toString());
+                }
+            }
+        }
+        String retval = "If";
+        for(String condition : conditions) {
+            retval = retval + "\n" + LS + condition;
+        }
+        return retval;
+    }),
+
     // Generic fallback for any condition that matches a scripted trigger by name
     scripted_trigger(DefaultParser.SCRIPTED),
 
-    DEFAULT((p) -> {
-        String retval = p.getText();
-        System.out.println(retval);
+    solar_system("Solar System", DefaultParser.CONDITIONAL),
+    any_member("Any Federation Member", DefaultParser.CONDITIONAL),
+
+    ELSE_BLOCK((p) -> {
+        List<String> conditions = new ArrayList<>();
+        for(PairContext prop : p.value().map().pair()) {
+            if(prop.key().equals("limit")) {
+                for(PairContext l : prop.value().map().pair()) {
+                    conditions.add(visitCondition(l).toString());
+                }
+            }
+        }
+        String retval = "Otherwise";
+        for(String condition : conditions) {
+            retval = retval + "\n" + LS + condition;
+        }
         return retval;
+    }),
+
+    DEFAULT((p) -> {
+        // Unknown condition - render a readable name with its arguments instead of raw script
+        StringBuilder sb = new StringBuilder(StringUtils.capitalize(p.key().replace('_', ' ')));
+        if(p.value() != null && p.value().map() != null) {
+            for(PairContext arg : p.value().map().pair()) {
+                String v = gs(arg);
+                if(v != null) sb.append(": ").append(i18n(v));
+            }
+        } else {
+            String v = gs(p);
+            if(v != null && !v.equals("yes")) sb.append(": ").append(i18n(v));
+        }
+        return sb.toString();
     })
     ;
 
@@ -206,7 +334,19 @@ public enum ModifierType {
         }),
         SCRIPTED((format, p) -> {
             PairContext q = GLOBAL_TRIGGERS.get(p.key());
-            boolean value = gs(p).equals("yes");
+            String raw = gs(p);
+            if(raw == null) {
+                // Parametrized trigger usage (name = { ARG = ... }) - render a readable name with its arguments
+                StringBuilder sb = new StringBuilder(StringUtils.capitalize(p.key().replace('_', ' ')));
+                if(p.value().map() != null) {
+                    for(PairContext arg : p.value().map().pair()) {
+                        String v = gs(arg);
+                        sb.append(": ").append(i18n(v == null ? arg.getText() : v));
+                    }
+                }
+                return sb.toString();
+            }
+            boolean value = raw.equals("yes");
             List<String> conditions = new ArrayList<>();
 
             if(!value) {
@@ -264,6 +404,8 @@ public enum ModifierType {
     }
 
     public static ModifierType value(String name) {
+        if(name.equals("if")) return IF_BLOCK; // "if"/"else" cannot be enum constants
+        if(name.equals("else")) return ELSE_BLOCK;
         try {
             return valueOf(name);
         } catch (IllegalArgumentException e) {

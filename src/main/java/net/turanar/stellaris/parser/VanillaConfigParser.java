@@ -57,11 +57,10 @@ public class VanillaConfigParser extends AbstractConfigParser {
 
     public Technology gather(Area area) {
         Technology retval = areaTech(area);
-        retval.children.addAll(
-            technologies.values().stream()
-                    .filter(t -> t.area.equals(area) && t.prerequisites.size() < 1 && !t.is_event)
-                    .collect(Collectors.toList())
-        );
+        // The invisible area root sits one column before tier 0
+        technologies.values().stream()
+                .filter(t -> t.area.equals(area) && t.prerequisites.size() < 1 && !t.is_event)
+                .forEach(t -> attach(retval, t, -1));
         return retval;
     }
 

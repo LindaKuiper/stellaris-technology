@@ -28,6 +28,9 @@ public class Technology implements Comparable<Technology> {
 
     public boolean is_event = false;
 
+    // Treant pseudo node: invisible, used to align each tier in its own column
+    public Boolean pseudo = null;
+
     public Boolean is_gestalt = null;
     public Boolean is_megacorp = null;
     public Boolean is_machine_empire = null;
