@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Something wrong on the tech tree website?
+    url: https://github.com/LindaKuiper/stellaris-tech-tree/issues/new/choose
+    about: Wrong tooltips, wrong weights, broken buttons, or suggestions — report all of it there. It gets moved to this repository if it turns out to be a parser problem.
